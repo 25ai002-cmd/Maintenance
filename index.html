@@ -6,434 +6,1013 @@
     <title>Society Management Pro - Skyline Edition</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-  <style>
-        html { scroll-behavior: smooth; }
-        .hidden { display: none; }
-        .admin-only { display: none; }
-        input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); }
-        
-        /* Dual Building Background Implementation */
-        body { 
-            background-color: #0f172a; 
-            color: white; 
-            font-family: sans-serif; 
-            margin: 0;
-            min-height: 100vh;
-            /* Layer 1: Dark overlay for readability | Layer 2: img1 (Left) | Layer 3: img2 (Right) */
-            background: 
-                linear-gradient(rgba(15, 23, 42, 0.8), rgba(15, 23, 42, 0.8)),
-                url('img1.jpg') no-repeat left bottom fixed,
-                url('img2.jpg') no-repeat right bottom fixed;
-            background-size: auto, 45% auto, 45% auto;
+    <style>
+    html {
+        scroll-behavior: smooth;
+    }
+
+    .hidden {
+        display: none;
+    }
+
+    :root{
+        --bg1:#020617;
+        --bg2:#0f172a;
+        --glass:rgba(255,255,255,0.08);
+        --glass-border:rgba(255,255,255,0.12);
+        --cyan:#22D3EE;
+        --cyan-soft:rgba(34,211,238,0.15);
+        --white-soft:rgba(255,255,255,0.7);
+        --shadow:0 20px 60px rgba(0,0,0,0.45);
+    }
+
+    *{
+        box-sizing:border-box;
+    }
+
+    body{
+        margin:0;
+        min-height:100vh;
+        overflow-x:hidden;
+        font-family:Inter,sans-serif;
+        color:white;
+        background:
+            radial-gradient(circle at top left, rgba(34,211,238,0.15), transparent 25%),
+            radial-gradient(circle at bottom right, rgba(59,130,246,0.18), transparent 25%),
+            linear-gradient(135deg, #020617 0%, #0f172a 50%, #111827 100%);
+        position:relative;
+    }
+
+    body::before{
+        content:"";
+        position:fixed;
+        inset:0;
+        background:
+            url('img1.jpg') no-repeat center center/cover;
+        opacity:0.18;
+        z-index:-2;
+        transform:scale(1.05);
+        filter:blur(2px);
+    }
+
+    body::after{
+        content:"";
+        position:fixed;
+        inset:0;
+        background:
+            linear-gradient(rgba(2,6,23,0.7), rgba(15,23,42,0.88));
+        z-index:-1;
+    }
+
+    /* Floating Glow Orbs */
+
+    .glow-orb{
+        position:fixed;
+        border-radius:50%;
+        filter:blur(90px);
+        z-index:-1;
+        animation:floatOrb 10s ease-in-out infinite alternate;
+    }
+
+    .glow-orb.one{
+        width:300px;
+        height:300px;
+        background:rgba(34,211,238,0.16);
+        top:-100px;
+        left:-100px;
+    }
+
+    .glow-orb.two{
+        width:280px;
+        height:280px;
+        background:rgba(59,130,246,0.14);
+        bottom:-120px;
+        right:-100px;
+        animation-delay:2s;
+    }
+
+    @keyframes floatOrb{
+        from{
+            transform:translateY(0px) translateX(0px);
+        }
+        to{
+            transform:translateY(40px) translateX(20px);
+        }
+    }
+
+    /* Main Glass Cards */
+
+    .card-bg{
+        position:relative;
+        background:rgba(255,255,255,0.06);
+        border:1px solid rgba(255,255,255,0.08);
+        backdrop-filter:blur(24px);
+        -webkit-backdrop-filter:blur(24px);
+        box-shadow:
+            0 8px 32px rgba(0,0,0,0.35),
+            inset 0 1px 1px rgba(255,255,255,0.08),
+            inset 0 -1px 1px rgba(255,255,255,0.02);
+        overflow:hidden;
+        transition:all 0.35s ease;
+    }
+
+    .card-bg::before{
+        content:"";
+        position:absolute;
+        inset:0;
+        background:
+            linear-gradient(
+                135deg,
+                rgba(255,255,255,0.08),
+                transparent 40%
+            );
+        pointer-events:none;
+    }
+
+    .card-bg:hover{
+        transform:translateY(-4px);
+        border-color:rgba(34,211,238,0.18);
+        box-shadow:
+            0 20px 60px rgba(0,0,0,0.45),
+            0 0 30px rgba(34,211,238,0.08);
+    }
+
+    /* Inputs */
+
+    .input-field{
+        width:100%;
+        background:rgba(14, 84, 182, 0.671);
+        border:1px solid rgba(255,255,255,0.08);
+        color:skyblue;
+        outline:none;
+        backdrop-filter:blur(12px);
+        -webkit-backdrop-filter:blur(12px);
+        transition:all 0.25s ease;
+        box-shadow:
+            inset 0 1px 1px rgba(255,255,255,0.05),
+            0 2px 8px rgba(0,0,0,0.15);
+    }
+
+    .input-field::placeholder{
+        color:rgba(255,255,255,0.4);
+    }
+
+    .input-field:focus{
+        border-color:rgba(34,211,238,0.7);
+        background:rgba(255,255,255,0.08);
+        box-shadow:
+            0 0 0 4px rgba(34,211,238,0.12),
+            0 0 25px rgba(34,211,238,0.12);
+    }
+
+    /* Cyan Buttons */
+
+    .btn-cyan{
+        position:relative;
+        overflow:hidden;
+        border:none;
+        cursor:pointer;
+        background:
+            linear-gradient(
+                135deg,
+                #22D3EE,
+                #06B6D4
+            );
+        color:#02131c;
+        font-weight:900;
+        letter-spacing:0.04em;
+        transition:all 0.3s ease;
+        box-shadow:
+            0 10px 30px rgba(34,211,238,0.28);
+    }
+
+    .btn-cyan::before{
+        content:"";
+        position:absolute;
+        top:0;
+        left:-120%;
+        width:80%;
+        height:100%;
+        background:linear-gradient(
+            90deg,
+            transparent,
+            rgba(255,255,255,0.45),
+            transparent
+        );
+        transform:skewX(-25deg);
+    }
+
+    .btn-cyan:hover::before{
+        animation:shine 1s ease;
+    }
+
+    @keyframes shine{
+        100%{
+            left:140%;
+        }
+    }
+
+    .btn-cyan:hover{
+        transform:translateY(-2px) scale(1.01);
+        box-shadow:
+            0 16px 40px rgba(34,211,238,0.35);
+    }
+
+    .btn-cyan:active{
+        transform:scale(0.98);
+    }
+
+    /* Header */
+
+    header{
+        background:rgba(15,23,42,0.5) !important;
+        border-bottom:1px solid rgba(255,255,255,0.08);
+        backdrop-filter:blur(25px);
+        -webkit-backdrop-filter:blur(25px);
+        box-shadow:0 4px 20px rgba(0,0,0,0.18);
+    }
+
+    /* Table */
+
+    table{
+        border-collapse:separate;
+        border-spacing:0;
+    }
+
+    thead{
+        background:rgba(255,255,255,0.03);
+        backdrop-filter:blur(18px);
+    }
+
+    tbody tr{
+        transition:all 0.25s ease;
+    }
+
+    tbody tr:hover{
+        background:rgba(255,255,255,0.04) !important;
+        transform:scale(1.003);
+    }
+
+    tbody td{
+        border-bottom:1px solid rgba(255,255,255,0.04);
+    }
+
+    /* Block Header */
+    .block-header {
+        background: linear-gradient(135deg, rgba(34,211,238,0.15), rgba(59,130,246,0.1));
+        border: 1px solid rgba(34,211,238,0.2);
+        padding: 12px 24px;
+        font-weight: bold;
+        color: #22D3EE;
+        cursor: pointer;
+        user-select: none;
+        transition: all 0.3s ease;
+    }
+
+    .block-header:hover {
+        background: linear-gradient(135deg, rgba(34,211,238,0.2), rgba(59,130,246,0.15));
+        border-color: rgba(34,211,238,0.4);
+    }
+
+    .block-header-text {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 14px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .block-toggle-icon {
+        display: inline-block;
+        transition: transform 0.3s ease;
+        font-size: 12px;
+    }
+
+    .block-toggle-icon.collapsed {
+        transform: rotate(-90deg);
+    }
+
+    .block-section {
+        display: contents;
+    }
+
+    .block-section.hidden-rows tr {
+        display: none;
+    }
+
+    /* Status Pills */
+
+    .status-pill-paid{
+        background:rgba(16,185,129,0.14);
+        color:#34d399;
+        border:1px solid rgba(52,211,153,0.2);
+        box-shadow:0 0 15px rgba(16,185,129,0.08);
+    }
+
+    .status-pill-pending{
+        background:rgba(244,63,94,0.12);
+        color:#fb7185;
+        border:1px solid rgba(251,113,133,0.18);
+        box-shadow:0 0 15px rgba(244,63,94,0.08);
+    }
+
+    /* Labels */
+
+    .section-label{
+        font-size:0.65rem;
+        font-weight:900;
+        letter-spacing:0.15em;
+        color:#67e8f9;
+        margin-bottom:0.55rem;
+        display:block;
+        text-transform:uppercase;
+    }
+
+    .phone-badge{
+        font-family:monospace;
+        font-size:0.72rem;
+        color:#94a3b8;
+        margin-left:0.4rem;
+    }
+
+    /* Scrollbar */
+
+    ::-webkit-scrollbar{
+        width:8px;
+        height:8px;
+    }
+
+    ::-webkit-scrollbar-track{
+        background:rgba(255,255,255,0.03);
+    }
+
+    ::-webkit-scrollbar-thumb{
+        background:linear-gradient(#22D3EE,#0891b2);
+        border-radius:20px;
+    }
+
+    /* Modals */
+
+    #bankModal .card-bg,
+    #committeeModal .card-bg{
+        background:rgba(15,23,42,0.65);
+        border:1px solid rgba(255,255,255,0.08);
+        box-shadow:
+            0 25px 70px rgba(0,0,0,0.55),
+            0 0 40px rgba(34,211,238,0.08);
+    }
+
+    /* Stats Cards */
+
+    #adminStats .card-bg{
+        background:
+            linear-gradient(
+                145deg,
+                rgba(255,255,255,0.07),
+                rgba(255,255,255,0.03)
+            );
+    }
+
+    #adminStats h3{
+        text-shadow:0 0 18px rgba(255,255,255,0.15);
+    }
+
+    /* Search Bar */
+
+    #searchBox{
+        font-size:1rem;
+        font-weight:500;
+    }
+
+    /* Animations */
+
+    .animate-float{
+        animation:floaty 4s ease-in-out infinite;
+    }
+
+    @keyframes floaty{
+        0%{ transform:translateY(0px); }
+        50%{ transform:translateY(-6px); }
+        100%{ transform:translateY(0px); }
+    }
+
+    /* Mobile */
+
+    @media(max-width:768px){
+
+        .card-bg{
+            border-radius:28px !important;
         }
 
-        /* UI Elements - High Blur for "Glass" effect over images */
-        .card-bg { 
-            background-color: rgba(30, 41, 59, 0.6); 
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.1); 
+        header{
+            padding:1rem;
         }
-        
-        .input-field { 
-            background-color: rgba(15, 23, 42, 0.8); 
-            border: 1px solid rgba(34, 211, 238, 0.2); 
-            color: white; 
-            outline: none; 
+
+        table{
+            min-width:900px;
         }
-        
-        .input-field:focus { border-color: #22D3EE; }
 
-        .btn-cyan { 
-            background-color: #22D3EE; 
-            color: #0f172a; 
-            font-weight: 800; 
-            transition: all 0.2s; 
+        .block-header-text {
+            font-size: 12px;
         }
-        .btn-cyan:hover { background-color: #06b6d4; transform: translateY(-1px); }
-        .btn-cyan:active { transform: scale(0.98); }
-
-        .status-pill-paid { background: rgba(16, 185, 129, 0.2); color: #10b981; }
-        .status-pill-pending { background: rgba(244, 63, 94, 0.2); color: #f43f5e; }
-        
-        .clickable-row { cursor: pointer; transition: background-color 0.2s; }
-        .clickable-row:hover { background-color: rgba(255, 255, 255, 0.05) !important; }
-
-        #qrPreview { max-width: 180px; margin: 15px auto; border-radius: 12px; display: none; border: 3px solid #22D3EE; }
-
-        /* Responsive adjustment: Stack images on mobile or keep it clean */
-        @media (max-width: 768px) {
-            body {
-                background: linear-gradient(rgba(15, 23, 42, 0.85), rgba(15, 23, 42, 0.85)), url('img1.jpg') no-repeat center fixed;
-                background-size: cover;
-            }
-        }
-    </style>
-</head>
+    }
+</style>
 <body>
 
     <div id="setupInterface" class="min-h-screen flex items-center justify-center p-6">
         <div class="card-bg p-10 rounded-[40px] shadow-2xl w-full max-w-lg">
-            <h2 id="setupTitle" class="text-3xl font-bold text-[#22D3EE] mb-2">Society Setup</h2>
-            <p id="setupDesc" class="text-gray-400 text-sm mb-8">Create your digital society portal.</p>
-            
+            <h2 class="text-3xl font-bold text-[#22D3EE] mb-2">Society Portal</h2>
             <div class="space-y-4">
                 <input id="setupSocietyName" type="text" placeholder="Society Name" class="input-field w-full p-4 rounded-2xl text-lg">
-                
                 <div id="configFields" class="space-y-4">
                     <div class="grid grid-cols-2 gap-4">
                         <input id="setupBlocks" type="number" placeholder="Blocks" class="input-field w-full p-4 rounded-2xl text-lg">
                         <input id="setupFlats" type="number" placeholder="Flats/Block" class="input-field w-full p-4 rounded-2xl text-lg">
                     </div>
-                    <input id="setupUser" type="text" placeholder="Set Admin Username" class="input-field w-full p-4 rounded-2xl text-lg">
-                    <input id="setupPass" type="password" placeholder="Set Admin Password" class="input-field w-full p-4 rounded-2xl text-lg">
+                    <input id="setupUser" type="text" placeholder="Admin Username" class="input-field w-full p-4 rounded-2xl text-lg">
+                    <input id="setupPass" type="password" placeholder="Admin Password" class="input-field w-full p-4 rounded-2xl text-lg">
                 </div>
+                <button onclick="runSetup()" class="btn-cyan w-full py-5 rounded-2xl text-xl mt-4">Initialize Society</button>
+                <button onclick="toggleResidentLogin()" class="w-full py-3 text-cyan-400 hover:text-white text-sm font-bold">Resident Login</button>
+                <p class="text-center text-gray-400 text-sm">Admin exists? <button onclick="toggleLoginMode()" class="text-cyan-400 font-bold">Admin Login</button></p>
+            </div>
+        </div>
+    </div>
 
-                <button id="mainSetupBtn" onclick="runSetup()" class="btn-cyan w-full py-5 rounded-2xl text-xl mt-4">Initialize Society</button>
-                
-                <div class="mt-6 text-center">
-                    <p id="toggleText" class="text-gray-400 text-sm">
-                        Access existing society? 
-                        <button onclick="toggleLoginMode()" class="text-cyan-400 font-bold hover:underline">Login here</button>
-                    </p>
-                </div>
+    <div id="residentInterface" class="hidden min-h-screen flex items-center justify-center p-6">
+        <div class="card-bg p-10 rounded-[40px] shadow-2xl w-full max-w-lg">
+            <h2 class="text-3xl font-bold text-[#22D3EE] mb-2">Resident Login</h2>
+            <div class="space-y-4 mt-6">
+                <input id="resSocName" type="text" placeholder="Society Name" class="input-field w-full p-4 rounded-2xl text-lg">
+                <input id="resFlatNum" type="text" placeholder="Flat Number (e.g. A-1)" class="input-field w-full p-4 rounded-2xl text-lg">
+                <input id="resPhone" type="text" placeholder="Registered Phone Number" class="input-field w-full p-4 rounded-2xl text-lg">
+                <button onclick="attemptResidentLogin()" class="btn-cyan w-full py-5 rounded-2xl text-xl mt-4">Verify & Enter</button>
+                <button onclick="toggleResidentLogin()" class="w-full py-3 text-gray-500 text-sm">Back</button>
             </div>
         </div>
     </div>
 
     <div id="loginInterface" class="hidden min-h-screen flex items-center justify-center p-6">
         <div class="card-bg p-12 rounded-[50px] shadow-2xl w-full max-w-md text-center">
-            <div class="mb-4">
-                <span class="text-xs text-cyan-400 font-bold uppercase tracking-widest">Welcome Back</span>
-                <h2 id="loginSocietyHeading" class="text-3xl font-bold text-white mt-1">Login</h2>
-            </div>
+            <h2 class="text-3xl font-bold text-white mb-6">Admin Login</h2>
             <div class="space-y-5">
                 <input id="loginUser" type="text" placeholder="Username" class="input-field w-full p-5 rounded-2xl text-lg">
                 <input id="loginPass" type="password" placeholder="Password" class="input-field w-full p-5 rounded-2xl text-lg">
                 <button onclick="attemptLogin()" class="btn-cyan w-full py-5 rounded-2xl text-xl mt-4">Access Dashboard</button>
-                <div class="mt-6">
-                    <button onclick="handleLogout()" class="text-gray-500 text-sm hover:text-cyan-400">Back to Setup</button>
-                </div>
+                <button onclick="handleLogout()" class="text-gray-500 text-sm mt-4">Back</button>
             </div>
         </div>
     </div>
 
     <div id="dashboardInterface" class="hidden">
         <header class="bg-slate-900/60 backdrop-blur-md p-5 sticky top-0 z-50 border-b border-white/10">
-            <div class="max-w-7xl mx-auto flex justify-between items-center">
-                <div class="flex items-center gap-4">
-                    <button onclick="toggleBankModal()" class="bg-cyan-600/20 text-cyan-400 p-2.5 rounded-xl border border-cyan-400/30 hover:bg-cyan-600/40">🏦 Payment Info</button>
-                    <h1 id="societyTitle" class="text-xl md:text-2xl font-bold text-[#22D3EE]">Society</h1>
+            <div class="max-w-[1600px] mx-auto flex justify-between items-center">
+                <div class="flex items-center gap-3">
+                    <button onclick="toggleBankModal()" class="bg-cyan-600/20 text-cyan-400 p-2.5 rounded-xl border border-cyan-400/30 text-xs font-bold uppercase">🏦 Bank</button>
+                    <button onclick="toggleCommitteeModal()" class="bg-amber-600/20 text-amber-400 p-2.5 rounded-xl border border-amber-400/30 text-xs font-bold uppercase">👥 Committee</button>
+                    <h1 id="societyTitle" class="hidden md:block text-xl font-bold text-[#22D3EE] ml-2">Society</h1>
                 </div>
-                <div class="flex items-center gap-2">
-                    <select id="viewMonth" onchange="displayFlats()" class="input-field text-xs p-2 rounded-lg"></select>
-                    <select id="viewYear" onchange="displayFlats()" class="input-field text-xs p-2 rounded-lg"></select>
-                    <button onclick="exportToExcel()" class="bg-emerald-600 px-3 py-2 rounded-lg text-xs font-bold">📥 Excel</button>
+                <div class="flex items-center gap-4">
+                    <div class="flex flex-col">
+                        <span class="text-[8px] text-cyan-400 font-bold uppercase ml-1">View Month</span>
+                        <div class="flex gap-1">
+                            <select id="viewMonth" onchange="handlePeriodChange()" class="input-field text-xs p-2 rounded-lg"></select>
+                            <select id="viewYear" onchange="handlePeriodChange()" class="input-field text-xs p-2 rounded-lg"></select>
+                        </div>
+                    </div>
+                    <div class="flex flex-col">
+                        <span class="text-[8px] text-rose-400 font-bold uppercase ml-1">Global Due Day</span>
+                        <input type="date" id="globalDueDate" onchange="updateGlobalDueDay()" class="input-field text-xs p-2 rounded-lg">
+                    </div>
                     <button onclick="handleLogout()" class="bg-rose-600/80 px-4 py-2 rounded-lg text-xs font-bold">Logout</button>
                 </div>
             </div>
         </header>
 
-        <main class="p-6 max-w-[1400px] mx-auto">
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-                <div class="card-bg p-6 rounded-3xl text-center"><h3 id="totalOccupied" class="text-3xl font-bold">0</h3><p class="text-xs text-gray-400 uppercase tracking-tighter">Occupied Flats</p></div>
-                <div class="card-bg p-6 rounded-3xl text-center border-emerald-500/30"><h3 id="paidCount" class="text-3xl font-bold text-emerald-400">0</h3><p class="text-xs text-emerald-500/80 uppercase tracking-tighter">Paid</p></div>
-                <div class="card-bg p-6 rounded-3xl text-center border-rose-500/30"><h3 id="pendingCount" class="text-3xl font-bold text-rose-400">0</h3><p class="text-xs text-rose-500/80 uppercase tracking-tighter">Pending</p></div>
-                <div class="card-bg p-6 rounded-3xl text-center"><h3 id="rentalCount" class="text-3xl font-bold text-amber-400">0</h3><p class="text-xs text-amber-500/80 uppercase tracking-tighter">Rentals</p></div>
+        <main class="p-4 md:p-8 max-w-[1800px] mx-auto">
+            
+            <div id="adminStats" class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                <div class="card-bg p-6 rounded-3xl text-center"><h3 id="totalOccupied" class="text-3xl font-bold">0</h3><p class="text-[10px] text-gray-400 uppercase tracking-tighter">Occupied</p></div>
+                <div class="card-bg p-6 rounded-3xl text-center"><h3 id="paidCount" class="text-3xl font-bold text-emerald-400">0</h3><p class="text-[10px] text-emerald-500 uppercase tracking-tighter">Paid</p></div>
+                <div class="card-bg p-6 rounded-3xl text-center"><h3 id="pendingCount" class="text-3xl font-bold text-rose-400">0</h3><p class="text-[10px] text-rose-500 uppercase tracking-tighter">Pending</p></div>
+                <div class="card-bg p-6 rounded-3xl text-center"><h3 id="rentalCount" class="text-3xl font-bold text-amber-400">0</h3><p class="text-[10px] text-amber-500 uppercase tracking-tighter">Rentals</p></div>
             </div>
 
-            <input type="text" id="searchBox" onkeyup="searchFlat()" placeholder="Search names or flat numbers..." class="w-full p-5 rounded-2xl input-field mb-8 text-lg">
+            <div id="mainLayout" class="flex flex-col lg:flex-row gap-6 items-start">
+                
+                <div id="residentPanel" class="hidden w-full lg:w-[400px] space-y-6 lg:sticky lg:top-28">
+                    <div class="card-bg p-8 rounded-[40px] border-cyan-400/20">
+                        <h2 class="text-2xl font-bold text-white mb-1">My Dashboard</h2>
+                        <p class="text-gray-400 text-sm mb-6">Flat: <span id="resFlatHeader" class="text-white font-bold"></span></p>
+                        
+                        <div class="bg-black/20 p-6 rounded-3xl mb-4 text-center">
+                            <span class="section-label mb-2">Monthly Dues</span>
+                            <div id="resStatusPill" class="inline-block px-3 py-1 rounded-full font-black text-[10px] mb-2 uppercase">PENDING</div>
+                            <h3 class="text-4xl font-black text-white">₹<span id="resAmountHeader">0</span></h3>
+                            <p class="text-[10px] text-gray-500 mt-2">Due by: <span id="resDueHeader" class="text-rose-400"></span></p>
+                            <p id="resPaidDateRow" class="text-[10px] text-emerald-400 mt-1 hidden">Paid: <span id="resPaidDateHeader"></span></p>
+                        </div>
 
-            <div class="card-bg rounded-3xl overflow-hidden mb-12">
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left">
-                        <thead class="bg-black/20 text-gray-400 uppercase text-[10px] font-bold">
-                            <tr>
-                                <th class="p-6">Flat</th><th class="p-6">Owner/Resident</th><th class="p-6">Contact</th><th class="p-6">Status</th><th class="p-6">Amount</th><th class="p-6 text-center">Action</th>
-                            </tr>
-                        </thead>
-                        <tbody id="dashboardTable" class="divide-y divide-white/5"></tbody>
-                    </table>
+                        <div class="space-y-4">
+                            <span class="section-label">Payment Gateway</span>
+                            <div class="flex flex-col items-center p-4 bg-white/5 rounded-2xl border border-white/5">
+                                <img id="resQR" src="" class="w-32 h-32 rounded-lg border-2 border-emerald-400 mb-3 hidden">
+                                <div id="resNoQR" class="text-gray-600 text-[10px] italic mb-2">QR Code Not Set</div>
+                                <div class="text-center">
+                                    <p id="resBankName" class="text-white text-sm font-bold">-</p>
+                                    <p id="resBankAcc" class="text-emerald-400 font-mono text-xs">-</p>
+                                    <p id="resBankIfsc" class="text-gray-500 font-mono text-[10px] uppercase">-</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-            </div>
 
-            <div id="adminForm" class="admin-only card-bg p-10 rounded-3xl max-w-4xl mx-auto mb-24">
-                <h2 class="text-2xl font-bold text-[#22D3EE] mb-8">Update Maintenance Record</h2>
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                    <select id="editMonth" onchange="loadFlatData()" class="p-4 rounded-xl input-field"></select>
-                    <select id="editYear" onchange="loadFlatData()" class="p-4 rounded-xl input-field"></select>
-                    <select id="block" onchange="loadFlatData()" class="p-4 rounded-xl input-field"></select>
-                    <select id="flatNumber" onchange="loadFlatData()" class="p-4 rounded-xl input-field"></select>
+                <div class="flex-1 w-full">
+                    <div class="flex justify-between items-center mb-6">
+                        <div class="flex items-center gap-4">
+                            <h2 class="text-xl font-bold text-white flex items-center gap-2">
+                               <span class="w-2 h-2 bg-cyan-400 rounded-full animate-pulse"></span> Society Status
+                            </h2>
+                            <div id="blockFilterContainer" class="hidden md:flex gap-2">
+                                <select id="blockFilter" onchange="filterByBlock()" class="input-field text-xs p-2 rounded-lg max-w-[150px]">
+                                    <option value="">All Blocks</option>
+                                </select>
+                            </div>
+                        </div>
+                        <button onclick="exportToExcel()" id="exportBtn" class="bg-emerald-600 px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest hidden">📥 Export Excel</button>
+                    </div>
+                    
+                    <input type="text" id="searchBox" onkeyup="searchFlat()" placeholder="Search flats, owners, or tenants..." class="w-full p-5 rounded-2xl input-field mb-6 text-lg">
+
+                    <div class="card-bg rounded-[30px] overflow-hidden">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left">
+                                <thead class="bg-black/40 text-gray-400 text-[10px] font-bold uppercase">
+                                    <tr>
+                                        <th class="p-6">Flat</th>
+                                        <th class="p-6">Resident Details</th>
+                                        <th class="p-6">Status</th>
+                                        <th class="p-6">Paid Date</th>
+                                        <th class="p-6">Amt</th>
+                                        <th class="p-6 text-center">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="dashboardTable" class="divide-y divide-white/5"></tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <input id="ownerName" type="text" placeholder="Owner Name" class="p-4 rounded-xl input-field">
-                    <input id="phone" type="text" placeholder="Phone Number" class="p-4 rounded-xl input-field">
-                    <select id="maintenance" class="p-4 rounded-xl input-field"><option value="Pending">Pending</option><option value="Paid">Paid</option></select>
-                    <input id="maintenanceAmount" type="number" placeholder="Maintenance Amount" class="p-4 rounded-xl input-field">
-                    <input id="flatDueDate" type="date" class="p-4 rounded-xl input-field">
-                    <input id="rentalName" type="text" placeholder="Rental/Tenant Name (Optional)" class="p-4 rounded-xl input-field">
-                </div>
-                <button onclick="saveFlat()" class="mt-8 btn-cyan w-full py-4 rounded-xl text-lg">Save Record</button>
             </div>
         </main>
     </div>
 
+    <div id="adminForm" class="hidden card-bg p-8 rounded-3xl shadow-2xl border border-cyan-500/30 my-4">
+        <h2 id="editFormHeading" class="text-xl font-bold text-[#22D3EE] mb-6">Edit Record</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            <div><span class="section-label">Owner</span><input id="ownerName" type="text" class="p-4 rounded-xl input-field w-full"></div>
+            <div><span class="section-label">Phone</span><input id="phone" type="text" class="p-4 rounded-xl input-field w-full"></div>
+        </div>
+        <div class="p-5 bg-black/20 rounded-2xl mb-6 border border-white/5">
+            <div class="flex items-center gap-4 mb-4"><span class="section-label mb-0">Tenant Status</span><select id="isRental" onchange="toggleRentalFields()" class="p-1 rounded-lg input-field text-[10px]"><option value="No">Self Occupied</option><option value="Yes">Rental</option></select></div>
+            <div id="rentalInputs" class="hidden grid grid-cols-1 md:grid-cols-2 gap-4"><input id="rentalName" type="text" placeholder="Tenant Name" class="p-4 rounded-xl input-field"><input id="rentalPhone" type="text" placeholder="Tenant Mobile" class="p-4 rounded-xl input-field"></div>
+        </div>
+        <div class="grid grid-cols-2 gap-4 mb-6">
+            <div><span class="section-label">Status</span><select id="maintenance" class="p-4 rounded-xl input-field w-full"><option value="Pending">Pending</option><option value="Paid">Paid</option></select></div>
+            <div><span class="section-label">Amount</span><input id="maintenanceAmount" type="number" class="p-4 rounded-xl input-field w-full"></div>
+        </div>
+        <input type="hidden" id="block"><input type="hidden" id="flatNumber"><input type="hidden" id="editMonth"><input type="hidden" id="editYear">
+        <div class="flex gap-4"><button onclick="saveFlat()" class="btn-cyan flex-1 py-4 rounded-xl">Save Changes</button><button onclick="closeForm()" class="bg-slate-700 px-6 rounded-xl">Cancel</button></div>
+    </div>
+
+    <div id="committeeModal" class="hidden fixed inset-0 flex items-center justify-center z-[110] p-4">
+        <div class="absolute inset-0 bg-black/80 backdrop-blur-lg" onclick="toggleCommitteeModal()"></div>
+        <div class="card-bg w-full max-w-lg p-8 rounded-[40px] relative border-amber-400/20">
+            <h3 class="text-xl font-bold text-amber-400 mb-6">Committee</h3>
+            <div id="committeeListView" class="space-y-4 max-h-[400px] overflow-y-auto pr-2"></div>
+            <div id="adminCommitteeSection" class="hidden mt-8 pt-6 border-t border-white/10">
+                <input id="commName" placeholder="Name" class="p-3 input-field rounded-xl text-sm w-full mb-2">
+                <input id="commRole" placeholder="Role (Secretary, Chairman...)" class="p-3 input-field rounded-xl text-sm w-full mb-2">
+                <input id="commPhone" placeholder="Phone" class="p-3 input-field rounded-xl text-sm w-full mb-4">
+                <button onclick="saveCommitteeMember()" class="w-full bg-amber-600 py-3 rounded-xl font-bold text-sm">Add Member</button>
+            </div>
+            <button onclick="toggleCommitteeModal()" class="w-full text-gray-500 text-sm mt-6">Close</button>
+        </div>
+    </div>
+
     <div id="bankModal" class="hidden fixed inset-0 flex items-center justify-center z-[100] p-4">
-        <div class="absolute inset-0 bg-black/60 backdrop-blur-md" onclick="toggleBankModal()"></div>
-        <div class="card-bg w-full max-w-md p-8 rounded-[40px] relative overflow-y-auto max-h-[90vh]">
-            <h3 class="text-xl font-bold text-[#22D3EE] mb-6">Payment Details</h3>
-            
+        <div class="absolute inset-0 bg-black/70 backdrop-blur-md" onclick="toggleBankModal()"></div>
+        <div class="card-bg w-full max-w-md p-8 rounded-[40px] relative">
+            <h3 class="text-xl font-bold text-[#22D3EE] mb-6 text-center">Bank Account Info</h3>
             <div id="bankView" class="bg-black/40 p-6 rounded-3xl mb-6 text-center border border-white/5">
-                <img id="qrPreview" src="" alt="Payment QR">
-                <p id="vBank" class="text-white font-bold text-xl mt-2">Not Set</p>
-                <p id="vAcc" class="text-cyan-400 font-mono text-sm tracking-wider">Not Set</p>
-                <p id="vIfsc" class="text-gray-500 font-mono text-xs mt-1 uppercase">Not Set</p>
+                <img id="qrPreview" src="" alt="QR" class="mx-auto hidden mb-4 max-w-[150px] border-2 border-cyan-400 rounded-lg">
+                <p id="vBank" class="text-white font-bold text-xl">-</p>
+                <p id="vAcc" class="text-cyan-400 font-mono text-sm">-</p>
+                <p id="vIfsc" class="text-gray-500 font-mono text-xs uppercase">-</p>
             </div>
-
-            <div class="admin-only space-y-4 border-t border-white/10 pt-6">
-                <label class="text-[10px] text-gray-400 font-bold uppercase">Admin: Update QR & Bank</label>
-                <input id="ebank" placeholder="Society Account Name" class="w-full p-4 input-field rounded-xl">
+            <div id="adminBankSection" class="hidden space-y-3">
+                <input id="ebank" placeholder="Account Name" class="w-full p-4 input-field rounded-xl">
                 <input id="eacc" placeholder="Account Number" class="w-full p-4 input-field rounded-xl">
-                <input id="eifsc" placeholder="IFSC Code" class="w-full p-4 input-field rounded-xl">
-                
-                <div class="p-4 border-2 border-dashed border-cyan-400/20 rounded-xl">
-                    <p class="text-[10px] text-cyan-400 font-bold mb-2 uppercase">Upload QR Code (PhonePe/GPay)</p>
-                    <input type="file" id="eqr" accept="image/*" class="text-xs text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:bg-cyan-600 file:text-white">
-                </div>
-
-                <button onclick="saveBank()" class="w-full bg-emerald-600 py-4 rounded-xl font-bold hover:bg-emerald-500 transition-colors">Update Society Info</button>
+                <input id="eifsc" placeholder="IFSC" class="w-full p-4 input-field rounded-xl">
+                <input type="file" id="eqr" class="text-xs text-gray-400 mt-2">
+                <button onclick="saveBank()" class="w-full bg-emerald-600 py-4 rounded-xl font-bold mt-2 uppercase tracking-widest">Update Details</button>
             </div>
+            <button onclick="toggleBankModal()" class="w-full text-gray-500 text-sm mt-4">Close</button>
         </div>
     </div>
 
     <script>
         let currentSociety = "";
         let isAdmin = false;
-        let isLoginOnly = false;
+        let loggedInFlat = null;
         let vault = JSON.parse(localStorage.getItem('societyVault')) || {};
+        let blockStates = JSON.parse(localStorage.getItem('blockStates')) || {}; // Track collapsed/expanded state
+        const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
         function init() {
-            const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
             const now = new Date();
-            const yearSelects = [document.getElementById('viewYear'), document.getElementById('editYear')];
-            const monthSelects = [document.getElementById('viewMonth'), document.getElementById('editMonth')];
-
-            yearSelects.forEach(s => {
-                for(let y = now.getFullYear() - 1; y <= now.getFullYear() + 3; y++) s.add(new Option(y, y));
-                s.value = now.getFullYear();
-            });
-
-            monthSelects.forEach(s => {
-                months.forEach(m => s.add(new Option(m, m)));
-                s.value = months[now.getMonth()];
-            });
+            const vy = document.getElementById('viewYear'), vm = document.getElementById('viewMonth');
+            if(vy) { for(let y = now.getFullYear() - 1; y <= now.getFullYear() + 3; y++) vy.add(new Option(y, y)); vy.value = now.getFullYear(); }
+            if(vm) { months.forEach(m => vm.add(new Option(m, m))); vm.value = months[now.getMonth()]; }
 
             const sessionSoc = sessionStorage.getItem('activeSociety');
             if (sessionSoc && vault[sessionSoc]) {
                 currentSociety = sessionSoc;
-                isAdmin = true;
+                isAdmin = sessionStorage.getItem('isAdmin') === 'true';
+                if(!isAdmin) loggedInFlat = JSON.parse(sessionStorage.getItem('residentFlat'));
                 loadDashboard();
             }
         }
 
-        function toggleLoginMode() {
-            isLoginOnly = !isLoginOnly;
-            document.getElementById('configFields').classList.toggle('hidden');
-            document.getElementById('setupTitle').innerText = isLoginOnly ? "Society Login" : "Society Setup";
-            document.getElementById('mainSetupBtn').innerText = isLoginOnly ? "Go to Login" : "Initialize Society";
-        }
-
-        function runSetup() {
-            const name = document.getElementById('setupSocietyName').value.trim();
-            if(!name) return alert("Enter society name");
-
-            if (!isLoginOnly) {
-                if (vault[name]) return alert("Name exists!");
-                vault[name] = {
-                    config: { 
-                        blocks: document.getElementById('setupBlocks').value || 1, 
-                        flats: document.getElementById('setupFlats').value || 1, 
-                        user: document.getElementById('setupUser').value || "admin", 
-                        pass: document.getElementById('setupPass').value || "123" 
-                    },
-                    apartmentData: {},
-                    bank: {}
-                };
-                for(let i=0; i<parseInt(vault[name].config.blocks); i++) vault[name].apartmentData[String.fromCharCode(65+i)] = {};
-                saveVault();
-            }
-            
-            if (!vault[name]) return alert("Society not found");
-            currentSociety = name;
-            document.getElementById('loginSocietyHeading').innerText = name;
-            document.getElementById('setupInterface').classList.add('hidden');
-            document.getElementById('loginInterface').classList.remove('hidden');
+        // --- AUTH & LOGIN ---
+        function attemptResidentLogin() {
+            const socName = document.getElementById('resSocName').value.trim();
+            const flatInp = document.getElementById('resFlatNum').value.toUpperCase().trim();
+            const phoneInp = document.getElementById('resPhone').value.trim();
+            if(!vault[socName]) return alert("Society not found.");
+            const [block, num] = flatInp.split('-');
+            const soc = vault[socName];
+            if(!soc.apartmentData[block] || !soc.apartmentData[block][num]) return alert("Flat not found.");
+            const flatData = soc.apartmentData[block][num];
+            if(flatData.phone === phoneInp || flatData.rentalPhone === phoneInp) {
+                currentSociety = socName; isAdmin = false; loggedInFlat = { block, num };
+                sessionStorage.setItem('activeSociety', socName); sessionStorage.setItem('isAdmin', 'false');
+                sessionStorage.setItem('residentFlat', JSON.stringify(loggedInFlat));
+                loadDashboard();
+            } else alert("Phone number mismatch.");
         }
 
         function attemptLogin() {
             const soc = vault[currentSociety];
             if (document.getElementById('loginUser').value === soc.config.user && document.getElementById('loginPass').value === soc.config.pass) {
-                isAdmin = true;
-                sessionStorage.setItem('activeSociety', currentSociety);
+                isAdmin = true; sessionStorage.setItem('activeSociety', currentSociety); sessionStorage.setItem('isAdmin', 'true');
                 loadDashboard();
-            } else alert("Invalid credentials");
+            } else alert("Invalid Credentials");
         }
 
         function loadDashboard() {
-            document.querySelectorAll('#setupInterface, #loginInterface').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('#setupInterface, #loginInterface, #residentInterface').forEach(el => el.classList.add('hidden'));
             document.getElementById('dashboardInterface').classList.remove('hidden');
-            if(isAdmin) document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'block');
             document.getElementById('societyTitle').innerText = currentSociety;
             
-            const soc = vault[currentSociety];
-            const bs = document.getElementById('block'), fs = document.getElementById('flatNumber');
-            bs.innerHTML = ''; fs.innerHTML = '';
-            for (let i = 0; i < parseInt(soc.config.blocks); i++) bs.add(new Option('Block ' + String.fromCharCode(65+i), String.fromCharCode(65+i)));
-            for (let i = 1; i <= parseInt(soc.config.flats); i++) fs.add(new Option('Flat ' + i, i));
+            document.getElementById('residentPanel').classList.toggle('hidden', isAdmin);
+            document.getElementById('adminStats').classList.toggle('hidden', !isAdmin);
+            document.getElementById('exportBtn').classList.toggle('hidden', !isAdmin);
+            document.getElementById('globalDueDate').value = getCalculatedDueDate();
+            document.getElementById('globalDueDate').disabled = !isAdmin;
             
-            displayFlats(); loadBank(); loadFlatData();
+            if(isAdmin) {
+                document.getElementById('adminBankSection').classList.remove('hidden');
+                document.getElementById('blockFilterContainer').classList.remove('hidden');
+                populateBlockFilter();
+            }
+            if(!isAdmin) renderResidentSidebar();
+            displayFlats(); 
+            loadBank();
+        }
+
+        function populateBlockFilter() {
+            const soc = vault[currentSociety];
+            const blockFilter = document.getElementById('blockFilter');
+            const blocks = Object.keys(soc.apartmentData).sort();
+            
+            // Clear existing options except "All Blocks"
+            while(blockFilter.options.length > 1) {
+                blockFilter.remove(1);
+            }
+            
+            blocks.forEach(b => {
+                blockFilter.add(new Option(`Block ${b}`, b));
+            });
+        }
+
+        function filterByBlock() {
+            const selectedBlock = document.getElementById('blockFilter').value;
+            const rows = document.querySelectorAll('#dashboardTable tr');
+            
+            rows.forEach(row => {
+                if(!row.id.startsWith('block-header') && !row.id.startsWith('detail')) {
+                    const flatCell = row.querySelector('td:first-child');
+                    if(flatCell) {
+                        const flatText = flatCell.textContent;
+                        const blockLetter = flatText.split('-')[0];
+                        row.style.display = (!selectedBlock || blockLetter === selectedBlock) ? '' : 'none';
+                    }
+                }
+            });
+        }
+
+        function renderResidentSidebar() {
+            const soc = vault[currentSociety], d = soc.apartmentData[loggedInFlat.block][loggedInFlat.num];
+            const period = `${document.getElementById('viewMonth').value}-${document.getElementById('viewYear').value}`;
+            const mData = (d.months && d.months[period]) ? d.months[period] : { status: 'Pending', amount: 0, paidDate: '-' };
+            const dueDate = getCalculatedDueDate().split('-').reverse().join('-');
+
+            document.getElementById('resFlatHeader').innerText = `${loggedInFlat.block}-${loggedInFlat.num}`;
+            document.getElementById('resAmountHeader').innerText = mData.amount || 0;
+            document.getElementById('resDueHeader').innerText = dueDate;
+            
+            const pill = document.getElementById('resStatusPill');
+            pill.innerText = mData.status;
+            pill.className = `inline-block px-3 py-1 rounded-full font-black text-[10px] mb-2 uppercase ${mData.status === 'Paid' ? 'status-pill-paid' : 'status-pill-pending'}`;
+            
+            if(mData.status === 'Paid') {
+                document.getElementById('resPaidDateRow').classList.remove('hidden');
+                document.getElementById('resPaidDateHeader').innerText = mData.paidDate;
+            } else document.getElementById('resPaidDateRow').classList.add('hidden');
+
+            const bank = soc.bank || {};
+            document.getElementById('resBankName').innerText = bank.n || '-';
+            document.getElementById('resBankAcc').innerText = bank.a || '-';
+            document.getElementById('resBankIfsc').innerText = `IFSC: ${bank.i || '-'}`;
+            if(bank.q) { document.getElementById('resQR').src = bank.q; document.getElementById('resQR').classList.remove('hidden'); document.getElementById('resNoQR').classList.add('hidden'); }
+            else { document.getElementById('resQR').classList.add('hidden'); document.getElementById('resNoQR').classList.remove('hidden'); }
         }
 
         function displayFlats() {
             const tbody = document.getElementById('dashboardTable');
             tbody.innerHTML = '';
-            const soc = vault[currentSociety];
-            const period = `${document.getElementById('viewMonth').value}-${document.getElementById('viewYear').value}`;
+            const soc = vault[currentSociety], period = `${document.getElementById('viewMonth').value}-${document.getElementById('viewYear').value}`;
+            const displayDate = getCalculatedDueDate().split('-').reverse().join('-');
             let stats = { occ: 0, paid: 0, pend: 0, rent: 0 };
 
-            Object.keys(soc.apartmentData).sort().forEach(b => {
+            Object.keys(soc.apartmentData).sort().forEach(block => {
+                // Add block header
+                const blockHeaderRow = tbody.insertRow();
+                blockHeaderRow.id = `block-header-${block}`;
+                blockHeaderRow.className = "block-header";
+                
+                const isCollapsed = blockStates[`${currentSociety}-${block}`] === true;
+                
+                blockHeaderRow.innerHTML = `
+                    <td colspan="6" style="padding: 0;">
+                        <div class="block-header-text" onclick="toggleBlockCollapse('${block}')">
+                            <span class="block-toggle-icon ${isCollapsed ? 'collapsed' : ''}">▼</span>
+                            <span>Block ${block}</span>
+                            <span style="margin-left: auto; font-size: 12px; font-weight: normal;">Click to ${isCollapsed ? 'expand' : 'collapse'}</span>
+                        </div>
+                    </td>
+                `;
+                
+                // Add flat rows for this block
+                const blockStartIdx = tbody.rows.length;
+                
                 for (let i = 1; i <= parseInt(soc.config.flats); i++) {
-                    const d = soc.apartmentData[b][i] || {};
-                    const mData = (d.months && d.months[period]) ? d.months[period] : { status: 'Pending', amount: 0 };
+                    const d = soc.apartmentData[block][i] || {};
+                    const mData = (d.months && d.months[period]) ? d.months[period] : { status: 'Pending', amount: 0, paidDate: '-' };
+                    if(d.owner) { stats.occ++; mData.status === 'Paid' ? stats.paid++ : stats.pend++; if(d.isRental === 'Yes') stats.rent++; }
                     
-                    if(d.owner) {
-                        stats.occ++;
-                        mData.status === 'Paid' ? stats.paid++ : stats.pend++;
-                        if(d.rentalName) stats.rent++;
-                    }
+                    let residentDisplay = `<span class="font-bold text-white">${d.owner || 'Vacant'}</span> ${d.phone ? `<span class="phone-badge">(${d.phone})</span>` : ''}`;
+                    if (d.isRental === 'Yes' && d.rentalName) residentDisplay += `<div class="text-[9px] text-amber-400 mt-1 uppercase tracking-tighter">Tenant: ${d.rentalName} ${d.rentalPhone ? `(${d.rentalPhone})` : ''}</div>`;
 
                     const row = tbody.insertRow();
-                    row.className = "hover:bg-white/5 clickable-row";
-                    row.onclick = () => scrollToEdit(b, i);
+                    row.className = `hover:bg-white/5 transition-colors ${isAdmin ? 'cursor-pointer' : ''} block-row-${block}`;
+                    row.id = `flat-${block}-${i}`;
+                    if(isAdmin) row.onclick = () => scrollToEdit(block, i);
+                    
+                    if(isCollapsed) {
+                        row.style.display = 'none';
+                    }
+                    
                     row.innerHTML = `
-                        <td class="p-6 font-bold text-[#22D3EE]">${b}-${i}</td>
-                        <td class="p-6 font-medium">${d.owner || '<span class="text-gray-600 italic">Vacant</span>'}</td>
-                        <td class="p-6 text-gray-400 font-mono text-xs">${d.phone || '-'}</td>
-                        <td class="p-6">
-                            ${d.owner ? `<span class="px-3 py-1 rounded-full text-[10px] font-bold ${mData.status === 'Paid' ? 'status-pill-paid' : 'status-pill-pending'}">${mData.status}</span>` : '-'}
-                        </td>
-                        <td class="p-6 font-mono">₹${mData.amount || 0}</td>
-                        <td class="p-6 text-center">
-                            ${d.owner ? `<button onclick="event.stopPropagation(); sendNotice('${d.phone}', '${mData.status}', '${d.owner}', '${mData.amount}')" class="bg-cyan-600/20 text-cyan-400 border border-cyan-400/30 p-2 px-4 rounded-lg text-[10px] font-bold">WHATSAPP</button>` : '-'}
-                        </td>
+                        <td class="p-6 font-bold text-cyan-400">${block}-${i}</td>
+                        <td class="p-6">${residentDisplay}</td>
+                        <td class="p-6"><span class="px-2 py-0.5 rounded-full text-[9px] font-bold ${mData.status === 'Paid' ? 'status-pill-paid' : 'status-pill-pending'}">${mData.status}</span></td>
+                        <td class="p-6 text-[10px] text-gray-400">${mData.status === 'Paid' ? (mData.paidDate || '-') : '-'}</td>
+                        <td class="p-6 font-mono text-xs">₹${mData.amount || 0}</td>
+                        <td class="p-6 text-center">${(d.owner && isAdmin) ? `<button onclick="event.stopPropagation(); sendNotice('${d.phone}', '${mData.status}', '${d.owner}', '${mData.amount}', '${displayDate}')" class="bg-cyan-600/20 text-cyan-400 border border-cyan-400/30 p-2 px-3 rounded-lg text-[9px] font-bold uppercase tracking-widest">Send</button>` : '-'}</td>
                     `;
+                    const detailRow = tbody.insertRow();
+                    detailRow.id = `detail-${block}-${i}`;
+                    detailRow.className = "hidden bg-slate-900/60";
+                    detailRow.innerHTML = `<td colspan="6" class="p-0"><div id="container-${block}-${i}" class="px-8 pb-4"></div></td>`;
                 }
             });
-            document.getElementById('totalOccupied').innerText = stats.occ;
-            document.getElementById('paidCount').innerText = stats.paid;
-            document.getElementById('pendingCount').innerText = stats.pend;
-            document.getElementById('rentalCount').innerText = stats.rent;
+            if(isAdmin) { document.getElementById('totalOccupied').innerText = stats.occ; document.getElementById('paidCount').innerText = stats.paid; document.getElementById('pendingCount').innerText = stats.pend; document.getElementById('rentalCount').innerText = stats.rent; }
+        }
+
+        function toggleBlockCollapse(block) {
+            const key = `${currentSociety}-${block}`;
+            blockStates[key] = !blockStates[key];
+            localStorage.setItem('blockStates', JSON.stringify(blockStates));
+            
+            // Toggle visibility of rows in this block
+            const rows = document.querySelectorAll(`.block-row-${block}, #detail-${block}-\\d+`);
+            const isCollapsed = blockStates[key];
+            rows.forEach(row => {
+                if(!row.id.startsWith('detail')) {
+                    row.style.display = isCollapsed ? 'none' : '';
+                }
+            });
+            
+            // Toggle icon rotation
+            const icon = document.querySelector(`#block-header-${block} .block-toggle-icon`);
+            if(icon) {
+                if(isCollapsed) {
+                    icon.classList.add('collapsed');
+                } else {
+                    icon.classList.remove('collapsed');
+                }
+            }
+        }
+
+        // --- COMMON UTILS ---
+        function getCalculatedDueDate() {
+            const soc = vault[currentSociety], stickyDay = soc.globalSettings?.defaultDueDay || 1;
+            const mIdx = months.indexOf(document.getElementById('viewMonth').value), year = document.getElementById('viewYear').value;
+            const dateObj = new Date(year, mIdx, stickyDay);
+            return `${dateObj.getFullYear()}-${String(dateObj.getMonth() + 1).padStart(2, '0')}-${String(dateObj.getDate()).padStart(2, '0')}`;
+        }
+
+        function handlePeriodChange() {
+            document.getElementById('globalDueDate').value = getCalculatedDueDate();
+            if(!isAdmin) renderResidentSidebar();
+            displayFlats();
         }
 
         function saveFlat() {
-            const soc = vault[currentSociety];
-            const b = document.getElementById('block').value, f = document.getElementById('flatNumber').value;
+            const soc = vault[currentSociety], b = document.getElementById('block').value, f = document.getElementById('flatNumber').value;
             const period = `${document.getElementById('editMonth').value}-${document.getElementById('editYear').value}`;
-            
             if(!soc.apartmentData[b][f]) soc.apartmentData[b][f] = { months: {} };
             const flat = soc.apartmentData[b][f];
-            
             flat.owner = document.getElementById('ownerName').value;
             flat.phone = document.getElementById('phone').value;
+            flat.isRental = document.getElementById('isRental').value;
             flat.rentalName = document.getElementById('rentalName').value;
-            
-            if(!flat.months) flat.months = {};
-            flat.months[period] = {
-                status: document.getElementById('maintenance').value,
-                amount: document.getElementById('maintenanceAmount').value,
-                dueDate: document.getElementById('flatDueDate').value
-            };
-            
-            saveVault(); displayFlats(); alert("Saved!");
+            flat.rentalPhone = document.getElementById('rentalPhone').value;
+            const status = document.getElementById('maintenance').value;
+            const now = new Date(), dateStr = `${String(now.getDate()).padStart(2, '0')}-${String(now.getMonth() + 1).padStart(2, '0')}-${now.getFullYear()}`;
+            flat.months[period] = { status: status, amount: document.getElementById('maintenanceAmount').value, paidDate: status === 'Paid' ? dateStr : '-' };
+            saveVault(); displayFlats(); closeForm();
         }
 
-        function loadFlatData() {
-            const soc = vault[currentSociety];
-            const b = document.getElementById('block').value, f = document.getElementById('flatNumber').value;
-            const period = `${document.getElementById('editMonth').value}-${document.getElementById('editYear').value}`;
-            const d = soc.apartmentData[b][f] || { months: {} };
-            
+        function scrollToEdit(b, f) {
+            if(!isAdmin) return;
+            const form = document.getElementById('adminForm');
+            document.querySelectorAll('[id^="detail-"]').forEach(r => r.classList.add('hidden'));
+            document.getElementById('block').value = b; document.getElementById('flatNumber').value = f;
+            document.getElementById('editMonth').value = document.getElementById('viewMonth').value;
+            document.getElementById('editYear').value = document.getElementById('viewYear').value;
+            loadFlatData(b, f);
+            const container = document.getElementById(`container-${b}-${f}`);
+            container.appendChild(form);
+            document.getElementById(`detail-${b}-${f}`).classList.remove('hidden');
+            form.classList.remove('hidden');
+        }
+
+        function loadFlatData(b, f) {
+            const soc = vault[currentSociety], period = `${document.getElementById('viewMonth').value}-${document.getElementById('viewYear').value}`;
+            const d = soc.apartmentData[b][f] || { months: {} }, m = (d.months && d.months[period]) || {};
             document.getElementById('ownerName').value = d.owner || '';
             document.getElementById('phone').value = d.phone || '';
+            document.getElementById('isRental').value = d.isRental || 'No';
             document.getElementById('rentalName').value = d.rentalName || '';
-            
-            const m = d.months[period] || {};
+            document.getElementById('rentalPhone').value = d.rentalPhone || '';
             document.getElementById('maintenance').value = m.status || 'Pending';
             document.getElementById('maintenanceAmount').value = m.amount || 0;
-            document.getElementById('flatDueDate').value = m.dueDate || '';
+            toggleRentalFields();
+        }
+
+        function toggleBankModal() { document.getElementById('bankModal').classList.toggle('hidden'); }
+        function toggleCommitteeModal() { 
+            document.getElementById('committeeModal').classList.toggle('hidden'); 
+            if(!document.getElementById('committeeModal').classList.contains('hidden')) {
+                loadCommittee();
+                document.getElementById('adminCommitteeSection').classList.toggle('hidden', !isAdmin);
+            }
+        }
+
+        function loadCommittee() {
+            const container = document.getElementById('committeeListView');
+            container.innerHTML = '';
+            const members = vault[currentSociety].committee || [];
+            if(members.length === 0) { container.innerHTML = `<p class="text-gray-500 text-center py-10">No members listed.</p>`; return; }
+            members.forEach((m, idx) => {
+                const div = document.createElement('div');
+                div.className = "bg-white/5 p-4 rounded-2xl flex justify-between items-center border border-white/5";
+                div.innerHTML = `<div><p class="text-[9px] text-amber-400 font-bold uppercase tracking-widest">${m.role}</p><p class="text-sm font-bold text-white">${m.name}</p><p class="text-xs text-gray-500 font-mono">${m.phone}</p></div>
+                <div class="flex gap-2">
+                    <button onclick="window.open('https://wa.me/${m.phone}')" class="text-emerald-400">WA</button>
+                    ${isAdmin ? `<button onclick="deleteComm(${idx})" class="text-rose-600">DEL</button>` : ''}
+                </div>`;
+                container.appendChild(div);
+            });
+        }
+
+        function saveCommitteeMember() {
+            const n = document.getElementById('commName').value, r = document.getElementById('commRole').value, p = document.getElementById('commPhone').value;
+            if(!n || !r || !p) return alert("Fill all fields");
+            if(!vault[currentSociety].committee) vault[currentSociety].committee = [];
+            vault[currentSociety].committee.push({name: n, role: r, phone: p});
+            saveVault(); loadCommittee();
         }
 
         function saveBank() {
             const file = document.getElementById('eqr').files[0];
-            const doSave = (qr) => {
-                vault[currentSociety].bank = {
-                    n: document.getElementById('ebank').value,
-                    a: document.getElementById('eacc').value,
-                    i: document.getElementById('eifsc').value,
-                    q: qr || vault[currentSociety].bank?.q || ""
-                };
-                saveVault(); loadBank(); alert("Bank info updated");
+            const executeSave = (qrData) => {
+                vault[currentSociety].bank = { n: document.getElementById('ebank').value, a: document.getElementById('eacc').value, i: document.getElementById('eifsc').value, q: qrData || vault[currentSociety].bank?.q || "" };
+                saveVault(); loadBank(); alert("Updated!");
             };
-
-            if (file) {
-                const reader = new FileReader();
-                reader.onloadend = () => doSave(reader.result);
-                reader.readAsDataURL(file);
-            } else doSave();
+            if(file) { const reader = new FileReader(); reader.onloadend = () => executeSave(reader.result); reader.readAsDataURL(file); }
+            else executeSave();
         }
 
         function loadBank() {
-            const b = vault[currentSociety].bank || {};
-            document.getElementById('vBank').innerText = b.n || 'Not Set';
-            document.getElementById('vAcc').innerText = b.a || 'Not Set';
-            document.getElementById('vIfsc').innerText = b.i || 'Not Set';
-            const img = document.getElementById('qrPreview');
-            if(b.q) { img.src = b.q; img.style.display = 'block'; } else img.style.display = 'none';
+            const b = vault[currentSociety]?.bank || {};
+            document.getElementById('vBank').innerText = b.n || '-';
+            document.getElementById('vAcc').innerText = b.a || '-';
+            document.getElementById('vIfsc').innerText = b.i || '-';
+            if(b.q) { document.getElementById('qrPreview').src = b.q; document.getElementById('qrPreview').classList.remove('hidden'); }
+            else document.getElementById('qrPreview').classList.add('hidden');
+            document.getElementById('ebank').value = b.n || ''; document.getElementById('eacc').value = b.a || ''; document.getElementById('eifsc').value = b.i || '';
         }
 
-        function scrollToEdit(b, f) {
-            document.getElementById('block').value = b;
-            document.getElementById('flatNumber').value = f;
-            loadFlatData();
-            document.getElementById('adminForm').scrollIntoView({ behavior: 'smooth' });
+        function runSetup() {
+            const name = document.getElementById('setupSocietyName').value.trim();
+            if(!name) return alert("Enter name");
+            if(!document.getElementById('configFields').classList.contains('hidden')) {
+                vault[name] = { config: { blocks: document.getElementById('setupBlocks').value || 1, flats: document.getElementById('setupFlats').value || 1, user: document.getElementById('setupUser').value || "admin", pass: document.getElementById('setupPass').value || "123" }, apartmentData: {}, bank: {}, committee: [], globalSettings: { defaultDueDay: 1 } };
+                for(let i=0; i<parseInt(vault[name].config.blocks); i++) vault[name].apartmentData[String.fromCharCode(65+i)] = {};
+                saveVault();
+            }
+            currentSociety = name; document.getElementById('setupInterface').classList.add('hidden'); document.getElementById('loginInterface').classList.remove('hidden');
         }
 
-        function sendNotice(phone, status, name, amt) {
-            if(!phone) return alert("No phone");
-            const msg = status === 'Paid' ? `Receipt: Maintenance of ₹${amt} received from ${name} for ${currentSociety}.` : `Reminder: Maintenance of ₹${amt} is pending for ${name} (${currentSociety}).`;
-            window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`);
-        }
-
-        function toggleBankModal() { document.getElementById('bankModal').classList.toggle('hidden'); }
         function saveVault() { localStorage.setItem('societyVault', JSON.stringify(vault)); }
         function handleLogout() { sessionStorage.clear(); window.location.reload(); }
         function searchFlat() { 
-            const query = document.getElementById('searchBox').value.toLowerCase();
-            document.querySelectorAll('#dashboardTable tr').forEach(r => r.style.display = r.innerText.toLowerCase().includes(query) ? '' : 'none');
+            const q = document.getElementById('searchBox').value.toLowerCase(); 
+            document.querySelectorAll('#dashboardTable tr').forEach(r => { 
+                if(!r.id.startsWith('detail') && !r.id.startsWith('block-header')) {
+                    r.style.display = r.innerText.toLowerCase().includes(q) ? '' : 'none'; 
+                }
+            }); 
         }
-
+        function toggleLoginMode() { document.getElementById('configFields').classList.toggle('hidden'); }
+        function toggleRentalFields() { document.getElementById('rentalInputs').classList.toggle('hidden', document.getElementById('isRental').value === 'No'); }
+        function closeForm() { document.getElementById('adminForm').classList.add('hidden'); document.querySelectorAll('[id^="detail-"]').forEach(r => r.classList.add('hidden')); }
+        function toggleResidentLogin() { document.getElementById('setupInterface').classList.add('hidden'); document.getElementById('residentInterface').classList.toggle('hidden'); }
+        function updateGlobalDueDay() { 
+            if(!isAdmin) return; 
+            const d = new Date(document.getElementById('globalDueDate').value).getDate();
+            vault[currentSociety].globalSettings.defaultDueDay = d; saveVault(); displayFlats(); 
+        }
+        function sendNotice(p, s, n, a, d) {
+            const month = document.getElementById('viewMonth').value;
+            const year = document.getElementById('viewYear').value;
+            let msg = "";
+            if (s === 'Paid') {
+                msg = `Receipt: Maintenance ₹${a} for ${month} ${year} received for ${currentSociety} flat.`;
+            } else {
+                msg = `Reminder: Maintenance ₹${a} for ${month} ${year} is pending for ${currentSociety} flat. Due date: ${d}.`;
+            }
+            window.open(`https://wa.me/${p}?text=${encodeURIComponent(msg)}`);
+        }
         function exportToExcel() {
             const soc = vault[currentSociety], m = document.getElementById('viewMonth').value, y = document.getElementById('viewYear').value;
-            let data = [];
+            let d = [];
             Object.keys(soc.apartmentData).forEach(b => {
                 for(let i=1; i<=parseInt(soc.config.flats); i++){
                     let f = soc.apartmentData[b][i] || {}, md = (f.months && f.months[`${m}-${y}`]) || {};
-                    data.push({Flat: `${b}-${i}`, Resident: f.owner||'Vacant', Status: md.status||'Pending', Amount: md.amount||0});
+                    d.push({Flat: `${b}-${i}`, Owner: f.owner||'-', Status: md.status||'Pending', Amount: md.amount||0});
                 }
             });
-            const ws = XLSX.utils.json_to_sheet(data), wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "Records");
-            XLSX.writeFile(wb, `${currentSociety}_${m}_${y}.xlsx`);
+            const ws = XLSX.utils.json_to_sheet(d), wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Status"); XLSX.writeFile(wb, `${currentSociety}_${m}.xlsx`);
         }
+        function deleteSociety(name) {
+    if (confirm(`Are you sure you want to delete "${name}"? This will erase all flat data.`)) {
+        delete vault[name]; // Removes the society from the object
+        saveVault();        // Saves the updated object to localStorage
+        
+        // If the deleted society was the one we were looking at, reset currentSociety
+        if (currentSociety === name) {
+            currentSociety = Object.keys(vault)[0] || "";
+        }
+        
+        location.reload(); // Refresh UI to show changes
+    }
+}
 
         init();
     </script>
